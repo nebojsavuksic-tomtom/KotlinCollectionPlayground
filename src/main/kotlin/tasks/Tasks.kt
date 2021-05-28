@@ -1,5 +1,6 @@
 package tasks
 
+
 import BasketballTeam
 import Player
 
@@ -18,26 +19,67 @@ val players = listOf(
 val denverNuggets = BasketballTeam(name = "Denver Nuggets", city = "Denver", players = players)
 
 
-fun BasketballTeam.bestPlayer(): Player = TODO()
+fun BasketballTeam.bestPlayer(): Player = this.players.maxByOrNull { it.overall } ?: error("No players found")
 
-fun BasketballTeam.oldestPlayer(): Player = TODO()
-fun BasketballTeam.youngestPlayer(): Player = TODO()
-fun BasketballTeam.averagePlayerAge(): Double = TODO()
+fun BasketballTeam.oldestPlayer(): Player = this.players.maxByOrNull { it.age } ?: error("No players found")
+fun BasketballTeam.youngestPlayer(): Player = this.players.minByOrNull { it.age } ?: error("No players found")
+fun BasketballTeam.averagePlayerAge(): Double = this.players.map { it.age }.average()
 
-fun BasketballTeam.numberOfPlayersAt(position: Player.Position): Int = TODO()
+fun BasketballTeam.numberOfPlayersAt(position: Player.Position): Int = this.players.count { it.position == position }
 
-fun BasketballTeam.playersByPositions(): Map<Player.Position, List<Player>> = TODO()
+fun BasketballTeam.playersByPositions(): Map<Player.Position, List<Player>> = this.players.groupBy { it.position }
 
 /**
  * Position with biggest number of players at that position
  */
-fun BasketballTeam.positionWithBestCoverage(): Player.Position = TODO()
+fun BasketballTeam.positionWithBestCoverage(): Player.Position = this.players
+    // Returns Map<Position, Player>
+    .groupBy { it.position }
+    // Returns Map<Position, CountOfPlayers>
+    .map { it.key to it.value.count() }
+    // Returns Pair<Position, CountOfPlayersAsInt> which has the biggest count
+    .maxByOrNull { it.second }!!
+    // Takes the position
+    .first
 
-fun BasketballTeam.biggestPlayerWage(): Double = TODO()
-fun BasketballTeam.lowestPlayerWage(): Double = TODO()
-fun BasketballTeam.totalYearWageExpense(): Double = TODO()
+fun BasketballTeam.biggestPlayerWage(): Double = this.players.maxOf { it.yearlyWageInMillions }
+fun BasketballTeam.lowestPlayerWage(): Double = this.players.minOf { it.yearlyWageInMillions }
+fun BasketballTeam.totalYearWageExpense(): Double = this.players.sumByDouble { it.yearlyWageInMillions }
 
 
 fun main() {
-    // Use for prints if needed
+    println("The best player of ${denverNuggets.name} is: ${denverNuggets.bestPlayer()}") //Jokic
+
+    println("The oldest player of ${denverNuggets.name} is: ${denverNuggets.oldestPlayer()}")
+    println("The youngest player of ${denverNuggets.name} is: ${denverNuggets.youngestPlayer()}")
+    println("${denverNuggets.name} average player age is: ${denverNuggets.averagePlayerAge()}")
+
+    printPlayersPerPositions()
+
+    printNumberOfPlayersAtPosition(Player.Position.PG)
+    printNumberOfPlayersAtPosition(Player.Position.SG)
+    printNumberOfPlayersAtPosition(Player.Position.SF)
+    printNumberOfPlayersAtPosition(Player.Position.PF)
+    printNumberOfPlayersAtPosition(Player.Position.C)
+
+    println("\nPosition with best coverage is: ${denverNuggets.positionWithBestCoverage()}")
+
+    println("\nThe biggest player wage: ${denverNuggets.biggestPlayerWage()}")
+    println("\nThe lowest player wage: ${denverNuggets.lowestPlayerWage()}")
+    println("\nTotal year wage expenses: ${denverNuggets.totalYearWageExpense()}")
+}
+
+private fun printPlayersPerPositions() {
+    denverNuggets.playersByPositions().forEach {
+        println("\nPosition ${it.key.value}:")
+
+        it.value.forEachIndexed { index, player ->
+            println("${index + 1}. ${player.fullName}")
+        }
+    }
+    println()
+}
+
+private fun printNumberOfPlayersAtPosition(position: Player.Position) {
+    println("Number of players at ${position.value} position: ${denverNuggets.numberOfPlayersAt(position)}")
 }
